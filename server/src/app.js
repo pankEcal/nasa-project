@@ -13,9 +13,9 @@ app.use(cors({ origin: "http://localhost:3000" })); // enable CORS for API acces
 app.use(express.json()); // enable JSON parse
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(__dirname, "..", "public"));
-// });
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+});
 
 // implement routes
 app.use(planetsRouter);
