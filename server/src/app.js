@@ -6,6 +6,7 @@ const morgan = require("morgan");
 
 // import from modules
 const planetsRouter = require("./routes/planets/planets.router");
+const launchesRouter = require("./routes/launches/launches.router");
 
 const app = express();
 
@@ -16,9 +17,11 @@ app.use(express.json()); // enable JSON parse
 app.use(express.static(path.join(__dirname, "..", "public"))); // add static file serving
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+	res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
 // implement routes
 app.use(planetsRouter);
+app.use(launchesRouter);
+
 module.exports = app;
