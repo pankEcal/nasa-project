@@ -7,7 +7,7 @@ const launch = {
 	mission: "Kepler Exploration X",
 	rocket: "Explorer IS1",
 	launchDate: new Date("December 7, 2030"),
-	destination: "Kepler-442 b",
+	target: "Kepler-442 b",
 	customers: ["ZTM", "NASA"],
 	upcoming: true,
 	success: true,
@@ -27,7 +27,7 @@ function addNewLaunch(newLaunchData) {
 			customers: ["Zero To Mastery", "NASA"],
 		})
 	);
-	return Array.from(launches.values());
+	return launches.get(newLaunchData.flightNumber);
 }
 
 function getAllLaunches() {
