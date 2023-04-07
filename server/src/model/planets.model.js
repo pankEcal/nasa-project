@@ -2,8 +2,8 @@ const { parse } = require("csv-parse");
 const path = require("path");
 const fs = require("fs");
 
-// array to store the final values
-const habitablePlanets = [];
+// importing planets model from mongo
+const planets = require("./planets.mongo");
 
 // determine habitable planet based on criterias:
 // 1. koi_disposition: 'CONFIRMED' (is confirmed to be existing)
@@ -35,23 +35,24 @@ function loadPlanetsData() {
 				})
 			)
 			// processing the received data as a column
-			.on("data", (planet) => {
+			.on("data", async (planet) => {
 				// the data received are buffers only and may not have any particular usage.
 				// The buffer has to be parsed in order to get meaningful data
 
 				if (isHabitablePlanet(planet)) {
-					habitablePlanets.push(planet);
+					savePlanet(planet);
 				}
 			})
 			.on("error", (error) => {
 				console.log("some error occured!!");
-
 				// indicate promise is not resolved
 				reject(error);
 			})
-			.on("end", () => {
+			.on("end", async () => {
 				console.log("finished processing habitable planets data");
-				// console.log("habitable planets: ", habitablePlanets.length);
+
+				// get habitable planets (using await as it's a promise)
+				console.log("habitable planets: ", (await getAllPlanets()).length);
 
 				// indicate promise is resolved after end of the processing of the data
 				resolve();
@@ -59,8 +60,37 @@ function loadPlanetsData() {
 	});
 }
 
-function getAllPlanets() {
-	return habitablePlanets;
+async function savePlanet(planet) {
+	try {
+		// will perform updateOne action. (order matters)
+		// first option object acts as a filter
+		// second option object update into database
+		// third object option performs upsert operation. i.e:
+		await planets.updateOne(
+			{
+				keplerName: planet.kepler_name,
+			},
+			{
+				keplerName: planet.kepler_name,
+			},
+			{
+				upsert: true,
+			}
+		);
+	} catch (error) {
+		console.log(`couldn't save planet. ${error}`);
+	}
+}
+
+async function getAllPlanets() {
+	// with second argument, removing the unrequired fields "_id" and "__v" while getting data from mongodb collection
+	return await planets.find(
+		{},
+		{
+			_id: 0,
+			__v: 0,
+		}
+	);
 }
 
 module.exports = { getAllPlanets, loadPlanetsData };
