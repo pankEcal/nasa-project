@@ -12,7 +12,8 @@ const app = express();
 
 // implement middlewares
 app.use(cors({ origin: "http://localhost:3000" })); // enable CORS for API access to frontend
-app.use(morgan("combined"));
+app.use(morgan("short"));
+
 app.use(express.json()); // enable JSON parse
 app.use(express.static(path.join(__dirname, "..", "public"))); // add static file serving
 
