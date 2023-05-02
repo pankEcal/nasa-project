@@ -50,21 +50,22 @@ async function scheduleNewLaunch(launch) {
 	await saveLaunch(newLaunch);
 }
 
-function existsLaunchWithId(launchId) {
-	const launch = launchesData.findOne({ flightNumber: launchId });
-
+async function existsLaunchWithId(launchId) {
+	const launch = await launchesData.findOne({ flightNumber: launchId });
 	return launch ? true : false;
 }
 
-function abortLaunchById(launchId) {
-	launchesData.findOneAndUpdate(
+async function abortLaunchById(launchId) {
+	const aborted = await launchesData.updateOne(
 		{ flightNumber: launchId },
 		{
 			upcoming: false,
 			success: false,
-		},
-		{ upsert: true }
+		}
 	);
+
+	// the returned value provies bunch of metadata which can be used to conditionally check the data
+	return aborted.matchedCount === 1 && aborted.modifiedCount === 1;
 }
 
 // function abortLaunchById(launchId) {
