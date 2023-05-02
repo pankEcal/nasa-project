@@ -5,9 +5,7 @@ const path = require("path");
 const morgan = require("morgan");
 
 // import from modules
-const planetsRouter = require("./routes/planets/planets.router");
-const launchesRouter = require("./routes/launches/launches.router");
-
+const apiV1 = require("./routes/apiV1");
 const app = express();
 
 // implement middlewares
@@ -22,7 +20,7 @@ app.get("/", (req, res) => {
 });
 
 // implement routes
-app.use("/planets", planetsRouter);
-app.use("/launches", launchesRouter);
+
+app.use("/v1", apiV1);
 
 module.exports = app;
