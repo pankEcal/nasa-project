@@ -74,6 +74,7 @@ async function loadLaunchData() {
 async function getAllLaunches(skip, limit) {
 	return await launchesData
 		.find({}, { _id: 0, __v: 0 })
+		.sort({ flightNumber: 1 })
 		.skip(skip)
 		.limit(limit);
 }
