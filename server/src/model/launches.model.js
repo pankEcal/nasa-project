@@ -6,11 +6,15 @@ const planets = require("./planets.mongo");
 const DEFAULT_FLIGHT_NUMBER = 100;
 const SPACEX_API_URL = "https://api.spacexdata.com/v4/launches/query";
 
-async function loadLaunchData() {
+async function populateLaunches() {
 	console.log("downloading launch data....");
-	const { data } = await axios.post(SPACEX_API_URL, {
+
+	const {
+		data: { docs: launchDocs },
+	} = await axios.post(SPACEX_API_URL, {
 		query: {},
 		options: {
+			pagination: false,
 			populate: [
 				{
 					path: "rocket",
@@ -28,7 +32,39 @@ async function loadLaunchData() {
 		},
 	});
 
-	console.log(data.docs[1]);
+	for (const launchDoc of launchDocs) {
+		const payloads = launchDoc["payloads"];
+		const customers = payloads.flatMap((payload) => {
+			return payload["customers"];
+		});
+
+		const launch = {
+			flightNumber: launchDoc["flight_number"],
+			mission: launchDoc["name"],
+			rocket: launchDoc["rocket"]["name"],
+			launchDate: launchDoc["date_local"],
+			upcoming: launchDoc["upcoming"],
+			success: launchDoc["success"],
+			customers,
+		};
+	}
+
+	// TODO: populate launches collection
+}
+
+async function loadLaunchData() {
+	const firstLaunch = await findLaunch({
+		flightNumber: 101,
+		rocket: "Explorer IS122",
+		mission: "all new Kepler",
+	});
+
+	if (firstLaunch) {
+		console.log("queried data already exists: ");
+		return;
+	} else {
+		await populateLaunches();
+	}
 }
 
 async function getAllLaunches() {
@@ -78,8 +114,14 @@ async function scheduleNewLaunch(launch) {
 	await saveLaunch(newLaunch);
 }
 
+async function findLaunch(filter) {
+	return await launchesData.findOne(filter);
+}
+
 async function existsLaunchWithId(launchId) {
-	const launch = await launchesData.findOne({ flightNumber: launchId });
+	// utilizing generic function to get the data based on the desired filter
+	const launch = await findLaunch(launchId);
+
 	return launch ? true : false;
 }
 
@@ -102,4 +144,5 @@ module.exports = {
 	abortLaunchById,
 	scheduleNewLaunch,
 	loadLaunchData,
+	findLaunch,
 };
