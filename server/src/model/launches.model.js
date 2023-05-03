@@ -7,10 +7,9 @@ const DEFAULT_FLIGHT_NUMBER = 100;
 const SPACEX_API_URL = "https://api.spacexdata.com/v4/launches/query";
 
 async function populateLaunches() {
-	console.log("downloading launch data....");
-
 	const {
 		data: { docs: launchDocs },
+		status,
 	} = await axios.post(SPACEX_API_URL, {
 		query: {},
 		options: {
@@ -32,6 +31,11 @@ async function populateLaunches() {
 		},
 	});
 
+	if (status !== 200) {
+		console.log("problem downloading launch data");
+		throw new Error("Launch data download failed");
+	}
+
 	for (const launchDoc of launchDocs) {
 		const payloads = launchDoc["payloads"];
 		const customers = payloads.flatMap((payload) => {
@@ -47,22 +51,22 @@ async function populateLaunches() {
 			success: launchDoc["success"],
 			customers,
 		};
-	}
 
-	// TODO: populate launches collection
+		//  populate launches collection
+		await saveLaunch(launch);
+	}
 }
 
 async function loadLaunchData() {
 	const firstLaunch = await findLaunch({
-		flightNumber: 101,
-		rocket: "Explorer IS122",
-		mission: "all new Kepler",
+		flightNumber: 1,
 	});
 
 	if (firstLaunch) {
-		console.log("queried data already exists: ");
+		console.log("queried data already exists");
 		return;
 	} else {
+		console.log("queried data doesn't exist. updating db");
 		await populateLaunches();
 	}
 }
@@ -83,15 +87,6 @@ async function getLatestFlightNumber() {
 }
 
 async function saveLaunch(launch) {
-	const planet = await planets.findOne(
-		{ keplerName: launch.target },
-		{ _id: 0, __v: 0 }
-	);
-
-	if (!planet) {
-		throw new Error("No matching planet was found");
-	}
-
 	await launchesData.findOneAndUpdate(
 		{
 			flightNumber: launch.flightNumber,
@@ -102,6 +97,15 @@ async function saveLaunch(launch) {
 }
 
 async function scheduleNewLaunch(launch) {
+	const planet = await planets.findOne(
+		{ keplerName: launch.target },
+		{ _id: 0, __v: 0 }
+	);
+
+	if (!planet) {
+		throw new Error("No matching planet was found");
+	}
+
 	const newFlightNumber = (await getLatestFlightNumber()) + 1;
 
 	const newLaunch = Object.assign(launch, {
