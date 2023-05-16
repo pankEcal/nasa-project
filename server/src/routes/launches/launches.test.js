@@ -1,10 +1,14 @@
 const request = require("supertest");
 const app = require("../../app");
 const { mongooseConnect, mongooseDisconnect } = require("../../services/mongo");
+const { loadPlanetsData } = require("../../model/planets.model.js");
 
 describe("Launches API", () => {
+	jest.setTimeout(20000);
+
 	beforeAll(async () => {
 		await mongooseConnect();
+		await loadPlanetsData();
 	});
 
 	afterAll(async () => {
@@ -41,7 +45,7 @@ describe("Launches API", () => {
 			launchDate: "hello",
 		};
 
-		/* 		test("It should respond with 201 created", async () => {
+		test("It should respond with 201 created", async () => {
 			const response = await request(app)
 				.post("/v1/launches")
 				.send(completeLaunchData)
@@ -54,7 +58,6 @@ describe("Launches API", () => {
 			expect(responseDate).toBe(requestDate);
 			expect(response.body).toMatchObject(launchDataWithoutDate);
 		});
- */
 
 		test("It should catch missing required properties", async () => {
 			const response = await request(app)

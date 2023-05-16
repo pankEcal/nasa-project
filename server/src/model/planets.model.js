@@ -49,10 +49,8 @@ function loadPlanetsData() {
 				reject(error);
 			})
 			.on("end", async () => {
-				console.log("finished processing habitable planets data");
-
 				// get habitable planets (using await as it's a promise)
-				console.log("habitable planets: ", (await getAllPlanets()).length);
+				console.log(`habitable planets:  ${(await getAllPlanets()).length}`);
 
 				// indicate promise is resolved after end of the processing of the data
 				resolve();
