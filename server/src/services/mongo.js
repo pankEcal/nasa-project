@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+require("dotenv").config();
 const MONGO_URL = process.env.MONGO_URL;
 
 // event handler: log message as the connection is successfully made.
